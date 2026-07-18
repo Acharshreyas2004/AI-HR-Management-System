@@ -1,0 +1,548 @@
+{
+  "name": "AI HR Management System-phase1-module2:Leave Management Systeml",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "4c9c067a-dcdd-470d-8a61-611784a0610d",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ea4f8f5e-60c5-45de-87ec-1a6637b00cd7",
+      "name": "Webhook",
+      "webhookId": "4c9c067a-dcdd-470d-8a61-611784a0610d"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI",
+          "mode": "list",
+          "cachedResultName": "Employees Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "employeeId",
+              "lookupValue": "={{ $json.body.employeeId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "e5dd5227-4147-45ee-9bf5-d755481c2d5c",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": \"true\",\n  \"message\": \"Your leave request   sent successfully\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1216,
+        -128
+      ],
+      "id": "094ae3b1-260c-45d3-9d37-5dce1de935a1",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c",
+          "mode": "list",
+          "cachedResultName": "Leave Requests",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "employeeId": "={{ $('Get row(s) in sheet').item.json.employeeId }}",
+            "employeeName": "={{ $('Get row(s) in sheet').item.json.firstName }}{{ $('Get row(s) in sheet').item.json.lastName }}",
+            "leaveId": "={{ \"LEAVE-\" + Date.now() }}",
+            "fromDate": "={{ $('Webhook').item.json.body.fromDate }}",
+            "toDate": "={{ $('Webhook').item.json.body.toDate }}",
+            "days": "={{ Math.ceil((new Date($('Webhook').item.json.body.toDate) - new Date($('Webhook').item.json.body.fromDate)) / (1000 * 60 * 60 * 24)) + 1 }}",
+            "reason": "={{ $('Webhook').item.json.body.reason }}",
+            "status": "Pending",
+            "createdAt": "={{ $now }}c",
+            "department": "={{ $('Get row(s) in sheet').item.json.department }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "leaveId",
+              "displayName": "leaveId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employeeId",
+              "displayName": "employeeId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employeeName",
+              "displayName": "employeeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fromDate",
+              "displayName": "fromDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "toDate",
+              "displayName": "toDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "days",
+              "displayName": "days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdAt",
+              "displayName": "createdAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        864,
+        -96
+      ],
+      "id": "36b10159-914e-4f1c-a1be-0f1caa352267",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c5e8caa1-3943-40d8-96fc-5be438605e10",
+              "name": "days",
+              "value": "={{ Math.ceil((new Date($('Webhook').item.json.body.toDate) - new Date($('Webhook').item.json.body.fromDate)) / (1000 * 60 * 60 * 24)) + 1 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "add0ee9c-d110-4ef2-be81-8cb121ebb414",
+      "name": "Calculate Leave Days"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"message\": \"you cannot do leave \"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1200,
+        176
+      ],
+      "id": "d1b8208b-e5cc-4bca-a8b6-25993263c23c",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "abc7398c-61d7-4068-9d4b-8c2dd05f719b",
+              "leftValue": "={{ $('Get row(s) in sheet').item.json.leaveBalance }}",
+              "rightValue": "={{ $json.days }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "c4f4bb13-8333-4b9f-ab8a-701b4359fe38",
+      "name": "condition to check leavw",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c",
+          "mode": "list",
+          "cachedResultName": "Leave Requests",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "leaveId": "={{ \"LEAVE-\" + Date.now() }}",
+            "employeeId": "={{ $('Get row(s) in sheet').item.json.employeeId }}",
+            "employeeName": "={{ $('Get row(s) in sheet').item.json.firstName + \" \" + $('Get row(s) in sheet').item.json.lastName }}",
+            "department": "={{ $('Get row(s) in sheet').item.json.department }}",
+            "fromDate": "={{ $('Webhook').item.json.body.fromDate }}",
+            "toDate": "={{ $('Webhook').item.json.body.toDate }}",
+            "days": "={{ Math.ceil((new Date($('Webhook').item.json.body.toDate) - new Date($('Webhook').item.json.body.fromDate)) / (1000 * 60 * 60 * 24)) + 1 }}",
+            "reason": "={{ $('Webhook').item.json.body.reason }}",
+            "status": "Rejected",
+            "createdAt": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "leaveId",
+              "displayName": "leaveId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employeeId",
+              "displayName": "employeeId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employeeName",
+              "displayName": "employeeName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fromDate",
+              "displayName": "fromDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "toDate",
+              "displayName": "toDate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "days",
+              "displayName": "days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "createdAt",
+              "displayName": "createdAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        880,
+        48
+      ],
+      "id": "e1900123-b163-441c-a4f0-68869068dd29",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Leave Request Workflow",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        512,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "e64b0313-06b4-4191-9391-2906e2694c83",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Calculate Leave Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Leave Days": {
+      "main": [
+        [
+          {
+            "node": "condition to check leavw",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "condition to check leavw": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f2c1f96b-d6ce-44c2-9321-b31e8b51e33d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "627b5dd0bb7a656e3f6bbb4d1d6bc6a68604f96d3083cef15ebc0fbe24d41f26"
+  },
+  "nodeGroups": [],
+  "id": "iyNsRMqAxHZpcj1Y",
+  "tags": []
+}
