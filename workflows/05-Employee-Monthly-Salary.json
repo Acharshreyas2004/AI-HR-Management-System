@@ -1,0 +1,207 @@
+{
+  "name": "AI HR Management System-phase1-module5.1-Payroll-Calculate-Monthly-Salary",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "22a98d5f-31a3-408c-aeb5-b29d96b9b042",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3588502d-9012-4bca-bcf6-463390520e7b",
+      "name": "Webhook",
+      "webhookId": "22a98d5f-31a3-408c-aeb5-b29d96b9b042"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI",
+          "mode": "list",
+          "cachedResultName": "Employees Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "employeeId",
+              "lookupValue": "={{$json.body.employeeId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1af1fb28-5dcd-4630-802c-eef69b6e237f",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo",
+          "mode": "list",
+          "cachedResultName": "Attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "employeeId",
+              "lookupValue": "={{$('Webhook').first().json.body.employeeId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "cd1b1e7e-2a47-41e8-98b5-08c3359860b9",
+      "name": "Get row(s) in sheet1",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Employee data from Get Employee Details node\nconst employee = $('Get row(s) in sheet').first().json;\n// Attendance records from Get Attendance Details node\nconst attendance = $('Get row(s) in sheet1').all();\n// Webhook input\nconst input = $('Webhook').first().json.body;\n\nconst month = Number(input.month);\nconst year = Number(input.year);\n\n// Filter attendance by month and year\nconst filteredAttendance = attendance.filter(item => {\n    const d = new Date(item.json.date);\n\n    return (\n        d.getMonth() + 1 === month &&\n        d.getFullYear() === year\n    );\n});\n\n// Count present days\nconst presentDays = filteredAttendance.length;\n\n// Fixed working days (can be made dynamic later)\nconst totalWorkingDays = 22;\n\n// Salary calculation\nconst monthlySalary = Number(employee.salary);\n\nconst salaryPerDay = monthlySalary / totalWorkingDays;\n\nconst netSalary = +(salaryPerDay * presentDays).toFixed(2);\n\n// Month name\nconst monthName = new Date(year, month - 1).toLocaleString('default', {\n    month: 'long'\n});\n\nreturn [\n{\njson: {\n    employeeId: employee.employeeId,\n    employeeName: employee.firstName + \" \" + employee.lastName,\n    month: monthName,\n    year,\n    monthlySalary,\n    totalWorkingDays,\n    presentDays,\n    salaryPerDay: +salaryPerDay.toFixed(2),\n    netSalary\n}\n}\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "03e70092-96d0-4cf5-87ab-2b16bc4fa5b9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        784,
+        0
+      ],
+      "id": "9af16228-1ec8-42da-a775-b981dfe2381d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "Employee Monthly salary",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -256
+      ],
+      "id": "2a503e3c-e179-42bc-8bb9-4fcda9875a9b",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "fa1ce8b4-9527-4c95-bfba-d9bfff5f114d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "627b5dd0bb7a656e3f6bbb4d1d6bc6a68604f96d3083cef15ebc0fbe24d41f26"
+  },
+  "nodeGroups": [],
+  "id": "epQm4WZnX9yf9AHx",
+  "tags": []
+}
