@@ -1,0 +1,152 @@
+{
+  "name": "AI HR Management System-phase1-module4.3.2:Employee (Date RangeAttendance summaray",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f696f4f2-5d4c-45f7-b919-9dc59158d08d",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e39f8cf2-2c8c-431b-ba23-4415585b9b19",
+      "name": "Webhook",
+      "webhookId": "f696f4f2-5d4c-45f7-b919-9dc59158d08d"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo",
+          "mode": "list",
+          "cachedResultName": "Attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "employeeId",
+              "lookupValue": "={{ $json.body.employeeId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4a8aa979-0f24-4f8d-a702-2096f71e261c",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const employeeId = $('Webhook').first().json.body.employeeId;\nconst fromDate = $('Webhook').first().json.body.fromDate;\nconst toDate = $('Webhook').first().json.body.toDate;\n\nconst records = items.filter(item => {\n  const date = item.json.date;\n\n  return (\n    date >= fromDate &&\n    date <= toDate\n  );\n});\n\nlet totalMinutes = 0;\n\nfor (const record of records) {\n  const wh = record.json.workingHours || \"0h 0m\";\n\n  const match = wh.match(/(\\d+)h\\s*(\\d+)m/);\n\n  if (match) {\n    const hours = parseInt(match[1]);\n    const minutes = parseInt(match[2]);\n\n    totalMinutes += hours * 60 + minutes;\n  }\n}\n\nconst presentDays = records.length;\n\nconst totalHours = Math.floor(totalMinutes / 60);\nconst remainingMinutes = totalMinutes % 60;\n\nconst avgMinutes = presentDays ? Math.floor(totalMinutes / presentDays) : 0;\n\nconst avgHours = Math.floor(avgMinutes / 60);\nconst avgRemainingMinutes = avgMinutes % 60;\n\nreturn [\n  {\n    json: {\n      employeeId,\n      fromDate,\n      toDate,\n      presentDays,\n      totalWorkingHours: `${totalHours}h ${remainingMinutes}m`,\n      averageWorkingHours: `${avgHours}h ${avgRemainingMinutes}m`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "9278aa58-9940-4d5c-b02b-a126c6a9a1c8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        0
+      ],
+      "id": "c8545c2a-2381-416b-8d5e-5f3497906f04",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "Employee Date Range Attendance\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        272,
+        -192
+      ],
+      "id": "ee3ca94e-5081-46ac-8470-a3e42144c125",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b06a9115-c5d7-47a9-9d7d-d6aad10d2a61",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "627b5dd0bb7a656e3f6bbb4d1d6bc6a68604f96d3083cef15ebc0fbe24d41f26"
+  },
+  "nodeGroups": [],
+  "id": "b82bCgtZbM1hLqsk",
+  "tags": []
+}
