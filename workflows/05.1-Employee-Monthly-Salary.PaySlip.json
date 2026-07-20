@@ -1,0 +1,480 @@
+{
+  "name": "AI HR Management System-phase1-module5.2-Payroll-Generate-PaySlip",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "181110e9-534f-4fbe-8d97-1ad0b2a26cfb",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "337cd151-893a-4b68-93a8-5996276cb32d",
+      "name": "Webhook",
+      "webhookId": "181110e9-534f-4fbe-8d97-1ad0b2a26cfb"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo",
+          "mode": "list",
+          "cachedResultName": "Attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "employeeId",
+              "lookupValue": "={{$('Webhook').first().json.body.employeeId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "9c64594e-3d0f-4b90-9076-4bd417d1afbd",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get employee data\nconst employee = $('Get row(s) in sheet').first().json;\n\n// Get attendance data\nconst attendance = $('Get row(s) in sheet1').all();\n\n// Get webhook input\nconst input = $('Webhook').first().json.body;\n\nconst month = Number(input.month);\nconst year = Number(input.year);\n\n// Filter attendance by selected month and year\nconst filteredAttendance = attendance.filter(item => {\n    const date = new Date(item.json.date);\n\n    return (\n        date.getMonth() + 1 === month &&\n        date.getFullYear() === year\n    );\n});\n\n// Present days\nconst presentDays = filteredAttendance.length;\n\n// Calculate working hours\nlet totalMinutes = 0;\n\nfilteredAttendance.forEach(item => {\n    const wh = item.json.workingHours || \"\";\n\n    const match = wh.match(/(\\d+)h\\s*(\\d+)m/);\n\n    if (match) {\n        totalMinutes += Number(match[1]) * 60;\n        totalMinutes += Number(match[2]);\n    }\n});\n\nconst hours = Math.floor(totalMinutes / 60);\nconst minutes = totalMinutes % 60;\n\nconst workingHours = `${hours}h ${minutes}m`;\n\n// Salary\nconst basicSalary = Number(employee.salary);\n\nconst totalWorkingDays = 22;\n\nconst salaryPerDay = basicSalary / totalWorkingDays;\n\nconst netSalary = Number((salaryPerDay * presentDays).toFixed(2));\n\n// Month name\nconst monthName = new Date(year, month - 1, 1).toLocaleString(\"default\", {\n    month: \"long\"\n});\n\n// Payroll ID\nconst payrollId = `PAY${Date.now()}`;\n\nreturn [\n{\n    json: {\n        payrollId,\n        employeeId: employee.employeeId,\n        employeeName: `${employee.firstName} ${employee.lastName}`,\n        department: employee.department,\n        designation: employee.designation,\n        month: monthName,\n        year,\n        presentDays,\n        workingHours,\n        basicSalary,\n        salaryPerDay: Number(salaryPerDay.toFixed(2)),\n        netSalary\n    }\n}\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "d9888075-ec4d-4994-a31b-fc8b8637c30f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig",
+          "mode": "list",
+          "cachedResultName": "Payroll Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "month": "={{ $('Code in JavaScript').item.json.month }}",
+            "netSalary": "={{ $('Code in JavaScript').item.json.netSalary }}",
+            "generatedAt": "={{$now}}",
+            "payrollId": "={{ $('Code in JavaScript').item.json.payrollId }}",
+            "employeeId": "={{ $('Code in JavaScript').item.json.employeeId }}",
+            "year": "={{ $('Code in JavaScript').item.json.year }}",
+            "presentDays": "={{ $('Code in JavaScript').item.json.presentDays }}",
+            "basicSalary": "={{ $('Code in JavaScript').item.json.basicSalary }}",
+            "workingHours": "={{ $('Code in JavaScript').item.json.workingHours }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "payrollId",
+              "displayName": "payrollId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employeeId",
+              "displayName": "employeeId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "month",
+              "displayName": "month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "year",
+              "displayName": "year",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "basicSalary",
+              "displayName": "basicSalary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "presentDays",
+              "displayName": "presentDays",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workingHours",
+              "displayName": "workingHours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "netSalary",
+              "displayName": "netSalary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "generatedAt",
+              "displayName": "generatedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1264,
+        -128
+      ],
+      "id": "d8b7fc75-a428-46b3-9db1-41b0b39127f6",
+      "name": "Append row in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Payroll  generated .\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1456,
+        -128
+      ],
+      "id": "fef6fcee-c592-4f7a-843e-204c8684582e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI",
+          "mode": "list",
+          "cachedResultName": "Employees Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "employeeId",
+              "lookupValue": "={{$('Webhook').first().json.body.employeeId}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "c570ec9d-6e1c-4b7f-b34e-80554b0fcf17",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig",
+          "mode": "list",
+          "cachedResultName": "Payroll Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "employeeId",
+              "lookupValue": "={{ $json.employeeId }}"
+            },
+            {
+              "lookupColumn": "month",
+              "lookupValue": "={{ $json.month }}"
+            },
+            {
+              "lookupColumn": "year",
+              "lookupValue": "={{ $json.year }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        0
+      ],
+      "id": "7d48f991-460c-4d51-9630-ccc0417cfd6c",
+      "name": "Get row(s) in sheet2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "289a1321-ba25-4dc4-b7de-0e8f203bcf6b",
+              "leftValue": "={{ Object.keys($json).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "b60c37d5-fa94-4436-87ff-1affcab1cac7",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"message\": \"Payroll already generated for this employee.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1248,
+        96
+      ],
+      "id": "03fcfd6e-f436-47f2-bfd3-05ca1c280b3e",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "content": "Pay Slip\n",
+        "height": 80,
+        "width": 230
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -448
+      ],
+      "id": "a01563e9-4e6c-4fd8-822e-9e1254dffbc7",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9445ff2e-1ebb-4a0c-8bee-cfc88d5bf969",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "627b5dd0bb7a656e3f6bbb4d1d6bc6a68604f96d3083cef15ebc0fbe24d41f26"
+  },
+  "nodeGroups": [],
+  "id": "TZFTxwWxLjmoLaSm",
+  "tags": []
+}
