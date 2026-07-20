@@ -1,0 +1,146 @@
+{
+  "name": "AI HR Management System-phase1-module4.3.1:Monthly Attendance summaray",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "adffc652-8c3c-4872-a3a9-865c18299b9f",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cce55219-d4b8-4cb0-9860-0a202052463e",
+      "name": "Webhook",
+      "webhookId": "adffc652-8c3c-4872-a3a9-865c18299b9f"
+    },
+    {
+      "parameters": {
+        "jsCode": "const employeeId = $('Webhook').first().json.body.employeeId;\nconst month = Number($('Webhook').first().json.body.month);\nconst year = Number($('Webhook').first().json.body.year);\n\nconst rows = $input.all();\n\n// Filter rows for employee + month + year\nconst records = rows.filter(item => {\n  const row = item.json;\n\n  if (row.employeeId !== employeeId) return false;\n\n  const d = new Date(row.date);\n\n  return (\n    d.getFullYear() === year &&\n    (d.getMonth() + 1) === month\n  );\n});\n\n// Total Present Days\nconst presentDays = records.length;\n\n// Calculate Total Working Minutes\nlet totalMinutes = 0;\n\nfor (const record of records) {\n  const wh = record.json.workingHours || \"0h 0m\";\n\n  const match = wh.match(/(\\d+)h\\s*(\\d+)m/);\n\n  if (match) {\n    totalMinutes += Number(match[1]) * 60 + Number(match[2]);\n  }\n}\n\nconst totalHours = Math.floor(totalMinutes / 60);\nconst remainingMinutes = totalMinutes % 60;\n\n// Average\nconst avgMinutes = presentDays ? Math.floor(totalMinutes / presentDays) : 0;\nconst avgHours = Math.floor(avgMinutes / 60);\nconst avgRemainingMinutes = avgMinutes % 60;\n\nreturn [\n  {\n    json: {\n      employeeId,\n      employeeName: records.length ? records[0].json.employeeName : \"\",\n      month,\n      year,\n      presentDays,\n      totalWorkingHours: `${totalHours}h ${remainingMinutes}m`,\n      averageWorkingHours: `${avgHours}h ${avgRemainingMinutes}m`\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2cc8b2ab-e72b-4b54-b43a-2f228e933b30",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        0
+      ],
+      "id": "a51fc255-e563-463d-b87e-d9b28f58c9e0",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo",
+          "mode": "list",
+          "cachedResultName": "Attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8c8f33b4-c7c7-4ade-99e4-4c4639b3febc",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Employee Monthly Attendance Summary\n",
+        "height": 96,
+        "width": 400
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        272,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "350ca184-5b14-4a4e-a035-a017624a90bf",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "cd669977-7e0a-47b9-a462-07cf479181fa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "627b5dd0bb7a656e3f6bbb4d1d6bc6a68604f96d3083cef15ebc0fbe24d41f26"
+  },
+  "nodeGroups": [],
+  "id": "ceop8ZOpBQ8KiRxv",
+  "tags": []
+}
