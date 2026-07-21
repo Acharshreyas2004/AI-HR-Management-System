@@ -1,0 +1,130 @@
+{
+  "name": "AI HR Management System-phase1-module6.2-Department Analytics",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "32668654-1609-464b-97b5-a5ee0a3ab5e4",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "254709dd-87cc-45c3-8bf7-df98a34fe9b5",
+      "name": "Webhook",
+      "webhookId": "32668654-1609-464b-97b5-a5ee0a3ab5e4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all employees\nconst employees = $('Get Employees').all();\n\n// Object to store department statistics\nconst departments = {};\n\n// Loop through employees\nfor (const item of employees) {\n\n    const emp = item.json;\n\n    const department = emp.department || \"Unknown\";\n    const salary = Number(emp.salary || 0);\n\n    if (!departments[department]) {\n        departments[department] = {\n            department,\n            employees: 0,\n            totalSalary: 0\n        };\n    }\n\n    departments[department].employees += 1;\n    departments[department].totalSalary += salary;\n}\n\n// Convert object to array\nconst result = Object.values(departments).map(dept => ({\n    department: dept.department,\n    totalEmployees: dept.employees,\n    averageSalary: Number((dept.totalSalary / dept.employees).toFixed(2))\n}));\n\nreturn [{\n    json: {\n        totalDepartments: result.length,\n        departments: result\n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "4f79927c-624d-4a6f-b786-e7d4ecfb86fb",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        0
+      ],
+      "id": "547f05bc-9137-4557-8bbd-f4d8785ce8ef",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI",
+          "mode": "list",
+          "cachedResultName": "Employees Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "3cfe7732-2d33-4f0a-994f-2ca579aeaf95",
+      "name": "Get Employees",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Employees",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Employees": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "cca68e2a-5f22-4dce-a646-945ec7ddf2a4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "627b5dd0bb7a656e3f6bbb4d1d6bc6a68604f96d3083cef15ebc0fbe24d41f26"
+  },
+  "nodeGroups": [],
+  "id": "wKcraky9oY7uKxnD",
+  "tags": []
+}
