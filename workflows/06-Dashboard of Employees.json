@@ -1,0 +1,279 @@
+{
+  "name": "AI HR Management System-phase1-module6.1-Dashboard Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "af960380-0b5f-403f-960e-058414c5320a",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6520a0d3-1d91-4fec-bf94-05f600d62fa5",
+      "name": "Webhook",
+      "webhookId": "af960380-0b5f-403f-960e-058414c5320a"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all data\nconst employees = $('Get Employees').all();\nconst attendance = $('Get Attendance').all();\nconst leaves = $('Get Leave Requests').all();\nconst payroll = $('Get Payroll').all();\n\n// Employee Statistics\nconst totalEmployees = employees.length;\n\nconst activeEmployees = employees.filter(\n    e => (e.json.status || \"\").toLowerCase() === \"active\"\n).length;\n\n// Attendance\nconst totalAttendanceRecords = attendance.length;\n\n// Leave Statistics\nconst approvedLeaves = leaves.filter(\n    l => (l.json.status || \"\").toLowerCase() === \"approved\"\n).length;\n\nconst pendingLeaves = leaves.filter(\n    l => (l.json.status || \"\").toLowerCase() === \"pending\"\n).length;\n\nconst rejectedLeaves = leaves.filter(\n    l => (l.json.status || \"\").toLowerCase() === \"rejected\"\n).length;\n\n// Payroll Statistics\nconst totalPayrollRecords = payroll.length;\n\nconst totalPayrollThisMonth = payroll.reduce(\n    (sum, p) => sum + Number(p.json.netSalary || 0),\n    0\n);\n\n// Average Salary (from Employees Database)\nconst totalSalary = employees.reduce(\n    (sum, e) => sum + Number(e.json.salary || 0),\n    0\n);\n\nconst averageSalary =\n    totalEmployees > 0\n        ? Number((totalSalary / totalEmployees).toFixed(2))\n        : 0;\n\n// Return Dashboard Summary\nreturn [\n{\n    json: {\n        totalEmployees,\n        activeEmployees,\n        totalAttendanceRecords,\n        approvedLeaves,\n        pendingLeaves,\n        rejectedLeaves,\n        totalPayrollRecords,\n        totalPayrollThisMonth: Number(totalPayrollThisMonth.toFixed(2)),\n        averageSalary\n    }\n}\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "a42880de-a2e6-4082-80e3-d2b781c6cc71",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI",
+          "mode": "list",
+          "cachedResultName": "Employees Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N-CHAUG09sfMzOXeUTgPCAV0FN_4_kszQBSiLh500RI/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "17ab18eb-0e8a-4e15-b1f7-1429f6da5fe3",
+      "name": "Get Employees",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo",
+          "mode": "list",
+          "cachedResultName": "Attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/15htdAxdCwYIItM7QkmVAbaRcYULY0DR97-BER7SVrPo/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        0
+      ],
+      "id": "dc32cd92-4a25-4032-85e7-741f3a704cd3",
+      "name": "Get Attendance",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c",
+          "mode": "list",
+          "cachedResultName": "Leave Requests",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1SElJKa75ANONHjutB6RF_NX45B4UeOKVQUdKX-bQr1c/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "d2c1d1df-b4ae-470c-bd31-2a17f45c58d6",
+      "name": "Get Leave Requests",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig",
+          "mode": "list",
+          "cachedResultName": "Payroll Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12_oJXUDwyLQSkeh7KjWK6VuShmZVXYfGAGej1FaNAig/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        0
+      ],
+      "id": "5e82699e-6e84-4923-a856-4555d5b773bb",
+      "name": "Get Payroll",
+      "executeOnce": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "aoE2YJSUFrJ8f7o6",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "d82eff71-c43b-489c-adee-de3fb5844d5c",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "content": "Deshboard Summary",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        592,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "f59b4c6a-09ad-4468-94fc-df42a1754f56",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Employees",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Employees": {
+      "main": [
+        [
+          {
+            "node": "Get Attendance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Attendance": {
+      "main": [
+        [
+          {
+            "node": "Get Leave Requests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Leave Requests": {
+      "main": [
+        [
+          {
+            "node": "Get Payroll",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Payroll": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a8111131-b2e0-45f0-9148-1e13e28f66a8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "627b5dd0bb7a656e3f6bbb4d1d6bc6a68604f96d3083cef15ebc0fbe24d41f26"
+  },
+  "nodeGroups": [],
+  "id": "UZ3zRMAlraGYgqHA",
+  "tags": []
+}
